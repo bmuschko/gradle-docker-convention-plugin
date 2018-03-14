@@ -1,0 +1,8 @@
+{
+  "name": "nodejs-hello-world",
+  "version": "1.0.0",
+  "description": "Prints hello world message",
+  "dependencies": {
+    "figlet": "^1.2.0"
+  }
+}

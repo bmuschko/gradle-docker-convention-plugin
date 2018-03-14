@@ -1,0 +1,68 @@
+plugins {
+    id 'com.moowork.node' version '1.2.0'
+    id 'com.bmuschko.docker-remote-api' version '3.2.5'
+}
+
+version = '1.0.0'
+
+node {
+    version = '9.8.0'
+    download = true
+}
+
+task helloWorld(type: NodeTask) {
+    dependsOn npmInstall
+    script = file('src/node')
+}
+
+docker {
+    registryCredentials {
+        username = getConfigurationProperty('DOCKER_USERNAME', 'docker.username')
+        password = getConfigurationProperty('DOCKER_PASSWORD', 'docker.password')
+        email = getConfigurationProperty('DOCKER_EMAIL', 'docker.email')
+    }
+}
+
+String getConfigurationProperty(String envVar, String sysProp) {
+    System.getenv(envVar) ?: project.findProperty(sysProp)
+}
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
+task createDockerfile(type: Dockerfile) {
+    group = 'Docker'
+    destFile = project.file('build/docker/Dockerfile')
+    from 'node:9'
+    maintainer 'Benjamin Muschko "benjamin.muschko@gmail.com"'
+    copyFile 'package*.json', './'
+    copyFile 'index.js', '/index.js'
+    runCommand 'npm install'
+    entryPoint 'node', 'index.js'
+    exposePort 8080
+}
+
+task syncNodeFiles(type: Sync) {
+    from('.') {
+        include 'package*.json'
+    }
+    from 'src/node'
+    into createDockerfile.destFile.parentFile
+}
+
+createDockerfile.dependsOn syncNodeFiles
+
+task buildImage(type: DockerBuildImage) {
+    group = 'Docker'
+    dependsOn createDockerfile
+    inputDir = createDockerfile.destFile.parentFile
+    tag = "bmuschko/nodejs-hello-world:$project.version"
+}
+
+task pushImage(type: DockerPushImage) {
+    group = 'Docker'
+    dependsOn buildImage
+    conventionMapping.imageName = { buildImage.getTag() }
+}
+

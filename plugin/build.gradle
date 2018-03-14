@@ -1,0 +1,17 @@
+apply plugin: 'groovy'
+
+version = '0.1'
+group = 'com.bmuschko'
+
+ext.compatibilityVersion = '1.6'
+sourceCompatibility = compatibilityVersion
+targetCompatibility = compatibilityVersion
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile localGroovy(), gradleApi()
+    compile 'com.bmuschko:gradle-docker-plugin:3.2.5'
+}
