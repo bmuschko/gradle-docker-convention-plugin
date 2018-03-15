@@ -1,0 +1,8 @@
+= Gradle Docker convention plugin for Node.js image:https://travis-ci.org/bmuschko/gradle-docker-convention-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/bmuschko/gradle-docker-convention-plugin"]
+
+A Gradle convention plugin for building and pushing Docker images for Node.js applications. The functionality is based on the link:https://github.com/bmuschko/gradle-docker-plugin[Gradle Docker plugin]. The plugin has not been published to a binary repository. However, the application project can be build and consume the plugin as part of a composite build.
+
+```
+$ cd application
+$ ./gradlew --include-build ../plugin pushImage
+```
