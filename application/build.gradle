@@ -1,9 +1,20 @@
-plugins {
-    id 'com.moowork.node' version '1.2.0'
-    id 'com.bmuschko.docker-remote-api' version '3.2.5'
+buildscript {
+    repositories {
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.2.0'
+        classpath 'com.bmuschko:gradle-docker-nodejs-plugin:0.1'
+    }
 }
 
+apply plugin: 'com.moowork.node'
+apply plugin: 'com.bmuschko.docker-nodejs-application'
+
 version = '1.0.0'
+group = 'com.bmuschko'
 
 node {
     version = '9.8.0'
@@ -21,48 +32,12 @@ docker {
         password = getConfigurationProperty('DOCKER_PASSWORD', 'docker.password')
         email = getConfigurationProperty('DOCKER_EMAIL', 'docker.email')
     }
+    
+    nodeJsApplication {
+        tag = "bmuschko/nodejs-hello-world:$project.version"
+    }
 }
 
 String getConfigurationProperty(String envVar, String sysProp) {
     System.getenv(envVar) ?: project.findProperty(sysProp)
 }
-
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-
-task createDockerfile(type: Dockerfile) {
-    group = 'Docker'
-    destFile = project.file('build/docker/Dockerfile')
-    from 'node:9'
-    maintainer 'Benjamin Muschko "benjamin.muschko@gmail.com"'
-    copyFile 'package*.json', './'
-    copyFile 'index.js', '/index.js'
-    runCommand 'npm install'
-    entryPoint 'node', 'index.js'
-    exposePort 8080
-}
-
-task syncNodeFiles(type: Sync) {
-    from('.') {
-        include 'package*.json'
-    }
-    from 'src/node'
-    into createDockerfile.destFile.parentFile
-}
-
-createDockerfile.dependsOn syncNodeFiles
-
-task buildImage(type: DockerBuildImage) {
-    group = 'Docker'
-    dependsOn createDockerfile
-    inputDir = createDockerfile.destFile.parentFile
-    tag = "bmuschko/nodejs-hello-world:$project.version"
-}
-
-task pushImage(type: DockerPushImage) {
-    group = 'Docker'
-    dependsOn buildImage
-    conventionMapping.imageName = { buildImage.getTag() }
-}
-
