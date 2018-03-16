@@ -2,6 +2,12 @@
   "name": "nodejs-hello-world",
   "version": "1.0.0",
   "description": "Prints hello world message",
+  "private": true,
+  "license": "Apache License 2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bmuschko/gradle-docker-convention-plugin"
+  },
   "dependencies": {
     "figlet": "^1.2.0"
   }
